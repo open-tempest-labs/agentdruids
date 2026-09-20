@@ -523,12 +523,17 @@ When in doubt, write the generic version. Internal-only context lives in places 
 1. Run `/pr-scope` to get a scope report on the working tree.
 2. Run `docker compose exec druids-app npm run type-check`.
 3. Run the relevant tests: `npm run test:unit` minimally, plus integration / contract / `test:session-protection` if your area requires them (see [CONTRIBUTING.md](CONTRIBUTING.md)).
-4. If anything is out of scope, revert it before opening the PR.
+4. **Run `/seam-audit` if the change touches a shared representation** — a migration, a type under `src/models/`, or an added/removed export. It enumerates every producer and consumer of what changed and reports the ones the diff fails to handle.
+5. If anything is out of scope, revert it before opening the PR.
+
+Step 4 is enforced rather than advisory: a `PreToolUse` hook blocks `git push` when the branch changes a representation and no audit covers the commit being pushed. It exists because the step *was* advisory and was skipped in three consecutive PRs, each time producing the same defect — a representation changed and a consumer of it went untraced. The hook stops the step being forgotten; it cannot judge whether the audit was thorough.
 
 ### Tooling provided
 
 - `/pr-scope` — slash command that runs `git status` + `git diff --stat` and flags new files, `.md` additions, and out-of-scope edits.
 - `pr-scope-auditor` — subagent that audits the current diff against a stated task description and returns PASS/FAIL.
+- `/seam-audit` — runs the `seam-auditor` subagent over the branch diff and records the audit against the current commit, satisfying the pre-push gate. Amending a commit invalidates the record.
+- `.claude/hooks/require-seam-audit.sh` — the gate itself. Narrow by design: silent on body-only edits, tests and docs, because a gate that fires on every PR gets switched off, which is worse than no gate.
 - `.claude/settings.example.json` — opt-in hook bundle that *enforces* the markdown-creation rule via `PreToolUse`. Copy to `.claude/settings.local.json` to enable. See [CONTRIBUTING.md](CONTRIBUTING.md) for the one-line opt-in.
 
 ## Project Structure Reference
