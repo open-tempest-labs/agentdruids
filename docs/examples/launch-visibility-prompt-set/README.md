@@ -30,8 +30,8 @@ two:
 |---|---|---|---|
 | 1 Global base | `prompts/base/global.md` | platform baseline | every agent |
 | 2 Agent-type | `prompts/agent-types/elemental.md` | operating discipline, elemental identity | every elemental, everywhere |
-| **3 Realm** | `realm.configuration.promptLayer` | **how launch/messaging work is done here** | every agent present in `launch-visibility` |
-| **4 Agent** | `agent.promptConfig.agentExtension` | **one channel's craft** | that one elemental |
+| **3 Realm** | the realm's prompt layer | **how launch/messaging work is done here** | every agent present in `launch-visibility` |
+| **4 Agent** | the elemental's prompt extension | **one channel's craft** | that one elemental |
 
 Layer 3 reaches **every agent present in the realm, including a visiting
 coordinator druid** — so it must contain nothing that would misfire for a
@@ -39,27 +39,26 @@ coordinator (e.g. a blanket ban on a tool the coordinator needs). It holds
 standing context about the *place* and the *kind of work*, not about any
 campaign.
 
-## How to apply
+## Where each layer goes
 
-- **Layer 3** → write the realm prompt below into
-  `launch-visibility`'s `configuration.promptLayer` (via Realm Management in the
-  UI, or SQL — see "Applying" at the end).
-- **Layer 4** → write each elemental's section below into its
-  `promptConfig.agentExtension`.
+- **Layer 3** is the realm's foundational prompt. Put the realm block below on
+  the `launch-visibility` realm, as its standing prompt layer.
+- **Layer 4** is a single elemental's prompt. Put each elemental's block below on
+  the matching elemental, as its own prompt extension.
 
-A restorable snapshot of the state *before* applying this set is in
-[`current-state-backup.sql`](./current-state-backup.sql) (data-only dump of
-`druids_core.agents` and `druids_core.realms`). The pre-distillation prompts are
-also reproduced verbatim in [Appendix A](#appendix-a--pre-distillation-prompts)
-for reference.
+The layers compose automatically at run time — global, then agent-type, then
+realm, then the individual agent — so there is nothing to wire together beyond
+placing each block on the right realm or elemental. Both the realm prompt and the
+agent extensions are read per run, so they can be edited and re-tested freely;
+keep your own snapshot before a large change if you want an easy way back.
 
 ---
 
 # Layer 3 — the `launch-visibility` realm prompt
 
-Paste everything in this block into `launch-visibility`'s
-`configuration.promptLayer`. It is generic: it describes the realm and the
-discipline of the work, and it names no product or client.
+This is the whole realm block — place it on the `launch-visibility` realm as its
+prompt layer. It is generic: it describes the realm and the discipline of the
+work, and it names no product or client.
 
 ```markdown
 ---
@@ -149,10 +148,11 @@ above.
 
 # Layer 4 — per-elemental specializations
 
-Each block is the full `agentExtension` for one elemental: its channel identity,
+Each block is the full prompt extension for one elemental: its channel identity,
 its channel-specific expertise, and its drafting nuance — and **nothing else**.
 The shared scaffolding (reading the brief, grounding, voice, output path) now
-comes from Layer 3 and is intentionally absent here.
+comes from Layer 3 and is intentionally absent here. Place each block on the
+matching elemental.
 
 ## positioner-elemental
 
@@ -355,43 +355,18 @@ ready.
 
 ---
 
-# Applying
+# Adapting this to another realm
 
-Realm layer (one row):
+To reuse this as boilerplate for a different launch-style workflow:
 
-```sql
-UPDATE druids_core.realms
-   SET configuration = jsonb_set(configuration, '{promptLayer}', to_jsonb($LAYER3_MARKDOWN))
- WHERE slug_id = 'launch-visibility';
-```
-
-Each elemental (per agent):
-
-```sql
-UPDATE druids_core.agents
-   SET prompt_config = jsonb_set(prompt_config, '{agentExtension}', to_jsonb($LAYER4_MARKDOWN))
- WHERE slug_id = '<elemental-slug>';
-```
-
-`jsonb_set` on `configuration` / `prompt_config` preserves the other keys in
-those objects; it replaces only the named field. Restart is not required — the
-realm layer and agent extension are read per call.
-
-To revert, restore [`current-state-backup.sql`](./current-state-backup.sql).
-
----
-
-# Appendix A — pre-distillation prompts
-
-The agent extensions in effect before this set was authored, reproduced for
-reference. These mixed the shared scaffolding (now Layer 3) with channel craft
-(now the Layer 4 blocks above). The full restorable snapshot, including realm
-rows and all agent columns, is in
-[`current-state-backup.sql`](./current-state-backup.sql).
-
-> Note: one of these (`facebook-elemental`) had earlier been overwritten with an
-> unrelated document and was repaired before this snapshot; the snapshot
-> therefore reflects the repaired text, not the corruption.
-
-See `current-state-backup.sql` for the verbatim text of each; it is the
-authoritative record and avoids duplicating ~12 KB of prompt text in two places.
+- Keep the Layer 3 block almost as-is — working from the brief, the grounding
+  discipline, voice, and the output convention are not channel- or
+  campaign-specific. Adjust only the realm's opening description if the realm's
+  purpose differs.
+- Keep the Layer 4 blocks for the channels you use; drop the ones you don't; add
+  a new block for any channel not covered here, following the same shape
+  (channel identity, what works on the channel, what to produce).
+- Everything campaign-specific stays out of both layers. The product, audience,
+  claims, and voice arrive at run time through the session brief and the realm's
+  knowledge corpus — that separation is what lets one prompt set serve many
+  campaigns.
