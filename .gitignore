@@ -44,3 +44,4 @@ headers.txt
 
 # Local record that a seam audit ran against a specific commit (see .claude/commands/seam-audit.md)
 .claude/.seam-audit
+.DS_Store
