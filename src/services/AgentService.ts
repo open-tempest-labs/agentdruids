@@ -1122,6 +1122,14 @@ export class AgentService {
         systemPrompt = composedPrompt.final_prompt;
         // Layer the coordination/collaboration context on top of the composed base.
         if (collaborationContextStr) systemPrompt += collaborationContextStr;
+        // Tell the agent which realm it is operating in, as the persona and
+        // legacy paths both do. This was missing only here, so a *successful*
+        // composition produced a less realm-aware prompt than a failed one —
+        // the catch below falls back to a path that applies it. Layer 3 was
+        // meant to carry realm context, but it is sourced from
+        // realm.configuration.promptLayer, which no realm populates, so until
+        // it does this is the only realm signal a composed agent receives.
+        systemPrompt = await this.generateRealmAwareSystemPrompt(agent, systemPrompt, request.sessionId);
         systemPrompt = await appendToolInfo(systemPrompt);
 
         if (composedPrompt.security_violations.length > 0) {
