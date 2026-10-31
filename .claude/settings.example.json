@@ -10,6 +10,15 @@
             "command": ".claude/hooks/block-stray-md.sh"
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/require-seam-audit.sh"
+          }
+        ]
       }
     ]
   }
