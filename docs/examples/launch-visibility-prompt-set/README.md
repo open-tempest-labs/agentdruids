@@ -11,8 +11,8 @@ never baked into these prompts.
 
 Each elemental's prompt had independently grown a copy of the same launch
 scaffolding — "read positioning, ICP, goal and voice from session context,"
-"write in the customer's voice," "write your draft to the session worldtree,"
-and (unevenly) a don't-fabricate rule. The duplication drifted: one channel's
+"write in the customer's voice," and (unevenly) a don't-fabricate rule. The
+duplication drifted: one channel's
 prompt was an unrelated document entirely, another never got the grounding rule,
 and the realm layer that was supposed to hold the shared part was empty, so none
 of it was enforced in one place.
@@ -126,16 +126,12 @@ brand voice. Default to plain, specific language. Avoid marketing clichés —
 "thrilled," "humbled," "excited to announce," "in today's fast-paced world,"
 "game-changer," "revolutionary." Specific beats grand.
 
-# Output Convention
+# Output
 
-Write your draft to the session worldtree, under your channel:
-
-```
-worldtree://session/{session-id}/channels/{your-channel}/drafts.md
-```
-
-Return the draft content as your response as well, so the coordinator can
-assemble it directly.
+Return your draft as your response. That response is what the coordinator
+receives and assembles into the campaign — there is no separate file to write and
+no path to save to. Return the finished content itself, not a description of it or
+a note about where you put it.
 
 # Channel Craft
 
@@ -150,9 +146,9 @@ above.
 
 Each block is the full prompt extension for one elemental: its channel identity,
 its channel-specific expertise, and its drafting nuance — and **nothing else**.
-The shared scaffolding (reading the brief, grounding, voice, output path) now
-comes from Layer 3 and is intentionally absent here. Place each block on the
-matching elemental.
+The shared scaffolding (reading the brief, grounding, voice, how output is
+returned) now comes from Layer 3 and is intentionally absent here. Place each
+block on the matching elemental.
 
 ## positioner-elemental
 
